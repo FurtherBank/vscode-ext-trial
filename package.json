@@ -10,16 +10,25 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:cpu-ext-trial.helloWorld"
+    "onCommand:cpu-ext-trial.HelloWorld"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "cpu-ext-trial.helloWorld",
-        "title": "Hello World"
+        "command": "cpu-ext-trial.HelloWorld",
+        "title": "HelloWorld"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceLangId == json",
+          "command": "cpu-ext-trial.HelloWorld",
+          "group": "1_modification"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
