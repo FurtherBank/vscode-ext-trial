@@ -10,21 +10,37 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:cpu-ext-trial.HelloWorld"
+    "onCommand:cpu-ext-trial.HelloWorld",
+    "onCommand:cpu-ext-trial.openMyWebview",
+    "onWebviewPanel:MyWebview",
+    "onCommand:cpu-ext-trial.LogFile"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
+        "command": "cpu-ext-trial.openMyWebview",
+        "title": "📖Open Panel"
+      },
+      {
         "command": "cpu-ext-trial.HelloWorld",
-        "title": "HelloWorld"
+        "title": "👋Hello World"
+      },
+      {
+        "command": "cpu-ext-trial.LogFile",
+        "title": "📄Log File"
       }
     ],
     "menus": {
       "explorer/context": [
         {
           "when": "resourceLangId == json",
-          "command": "cpu-ext-trial.HelloWorld",
+          "command": "cpu-ext-trial.LogFile",
+          "group": "1_modification"
+        },
+        {
+          "when": "resourceLangId == json",
+          "command": "cpu-ext-trial.openMyWebview",
           "group": "1_modification"
         }
       ]
