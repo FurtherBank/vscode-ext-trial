@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { IWebview } from './IWebview';
+import { IWebviewPathInfo } from './getWebviewPathInfo';
 
 const initJS = `
 function initEventListener(fn) {
@@ -21,22 +22,17 @@ function initEventListener(fn) {
 }
 `;
 
-export const loadWebviewHtml = (panel: vscode.WebviewPanel, extensionPath: string, webview: IWebview<any>) => {
-    const { htmlPath } = webview
+export const loadWebviewHtml = (panel: vscode.WebviewPanel, pathInfo: IWebviewPathInfo) => {
+  const { rootString, pagePath } = pathInfo;
 
-    // 读取 html，并做环境兼容
-    const rootString = path.join(extensionPath, htmlPath);
-    const localResourceRoots = vscode.Uri.file(path.join(rootString, '/')).with({
-      scheme: 'vscode-resource',
-    });
+  const fileUri = vscode.Uri.file(rootString.endsWith('/') ? rootString : rootString + '/');
 
-    const pagePath = path.join(rootString, 'index.html');
-    panel.webview.html = fs
-      .readFileSync(pagePath, 'utf-8')
-      .replace('{{base}}', localResourceRoots.toString())
-      .replace('"{{init}}"', initJS);
+  // 直接将 base 和 script 插入到 head 头部，不需要对 html 文件再做标记
+  const modelString = `<head>
+    <base href="${panel.webview.asWebviewUri(fileUri).toString()}" />
+    <script type="text/javascript">
+      "${initJS}"
+    </script>`;
 
-    console.log(pagePath);
-    console.log(panel.webview.html);
-      
-}
+  panel.webview.html = fs.readFileSync(pagePath, 'utf-8').replace('<head>', modelString);
+};

@@ -14,7 +14,7 @@ export const iview: IWebview = {
       retainContextWhenHidden: true,
 
       // 该字段限定可以在哪个文件夹下读取资源
-      localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'web-source'))],
+      // localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'web-source/dist'))],
     };
   },
   htmlPath: 'web-source/dist',

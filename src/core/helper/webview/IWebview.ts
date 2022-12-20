@@ -59,8 +59,13 @@ export interface IWebview<T = void> {
   onDidReceiveMessage?: (this: T, m: any) => void;
 
   panelListeners?: PanelListeners<T>;
+  
   /**
-   * webviewPanel 在 [反序列化](https://www.yuque.com/furtherbank/vscode-learn/nwooxr#LkWuX) 时执行的函数
+   * webviewPanel 在 [反序列化](https://www.yuque.com/furtherbank/vscode-learn/nwooxr#LkWuX) 时执行的函数。
+   * 
+   * 插件模板会自动在`deserializeWebviewPanel`中恢复 webview 原来的状态。
+   * 
+   * 如果你还需要做其它额外的事情，才需要声明该函数。
    */
-  deserializeWebviewPanel?: (this: T, webviewPanel: vscode.WebviewPanel, state: any) => Promise<any>;
+  deserialize?: (this: T, webviewPanel: vscode.WebviewPanel, state: any) => Promise<any>;
 }

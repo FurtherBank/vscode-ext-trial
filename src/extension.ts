@@ -9,6 +9,7 @@ import { WebviewManager } from './core/webview/manager';
 import { loadWebviewHtml } from './core/helper/webview/loadWebviewHtml';
 import { IWebview } from './core/helper/webview/IWebview';
 import { iview } from './webview/panel';
+import { getWebviewPathInfo } from './core/helper/webview/getWebviewPathInfo';
 
 // just fill this array by your commands, then will automatically register
 // note: don't forget to fill the command in package.json
@@ -67,8 +68,8 @@ export function activate(context: vscode.ExtensionContext) {
         _token: vscode.CancellationToken
       ): Promise<void> {
         const { viewType, onDidReceiveMessage, panelListeners } = webview;
-
-        loadWebviewHtml(webviewPanel, context.extensionPath, webview);
+        
+        loadWebviewHtml(webviewPanel, getWebviewPathInfo(context.extensionPath, webview.htmlPath));
 
         // 消息通信，自己负责消息的具体解析和处理
         if (onDidReceiveMessage) {
