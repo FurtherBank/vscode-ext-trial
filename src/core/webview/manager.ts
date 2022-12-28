@@ -40,7 +40,6 @@ export class WebviewManager {
             },
           });
         }
-        console.log(`成功注册 webview: ${key}`);
       }
     }
   }

@@ -34,5 +34,12 @@ export const loadWebviewHtml = (panel: vscode.WebviewPanel, pathInfo: IWebviewPa
       "${initJS}"
     </script>`;
 
-  panel.webview.html = fs.readFileSync(pagePath, 'utf-8').replace('<head>', modelString);
+
+  panel.webview.html = fs
+    .readFileSync(pagePath, 'utf-8')
+    .replace('<head>', modelString)
+    .replace(/src\s*=\s*([\'\"])\//g, 'src=$1') // 去掉 src 左边的 /，使 base 可以正常工作n
+    .replace(/href\s*=\s*([\'\"])\//g, 'href=$1'); // 去掉 href 左边的 /，使 base 可以正常工作
+
+    console.log(panel.webview.html);
 };

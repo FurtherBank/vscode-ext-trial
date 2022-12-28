@@ -10,6 +10,8 @@ import { loadWebviewHtml } from './core/helper/webview/loadWebviewHtml';
 import { IWebview } from './core/helper/webview/IWebview';
 import { iview } from './webview/panel';
 import { getWebviewPathInfo } from './core/helper/webview/getWebviewPathInfo';
+import { ITextEditor, ITextEditorWebview } from './core/helper/editor/text/ITextEditor';
+import { JsonEditor } from './webview/json-editor';
 
 // just fill this array by your commands, then will automatically register
 // note: don't forget to fill the command in package.json
@@ -23,10 +25,12 @@ const commands: typeof Command[] = [HelloWorld, LogFile];
  * 2. 键名和`webview.viewType`需要完全一致。
  */
 WebviewManager.webviews = {
-  'MyWebview': iview
+  MyWebview: iview,
 };
 
-const customTextEditorWebviews: IWebview<vscode.TextDocument>[] = [];
+const customTextEditorWebviews: Record<string, ITextEditor> = {
+  'JsonEditor': JsonEditor
+};
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -39,36 +43,42 @@ export function activate(context: vscode.ExtensionContext) {
     command.register(context);
   });
 
-  // // webView 管理
-  // let disposable = vscode.commands.registerCommand(`${pluginName}.open`, () => {
-  //   MyWebview.createOrShow(context.extensionPath);
-  // });
-
-  // context.subscriptions.push(disposable);
-
-  // if (vscode.window.registerWebviewPanelSerializer) {
-  //   // Make sure we register a serializer in activation event
-  //   vscode.window.registerWebviewPanelSerializer(MyWebview.viewType, {
-  //     async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-  //       // 反序列化，拿回来上次的 webviewPanel，然后实例化 MyWebview，继承原来状态
-  //       MyWebview.revive(webviewPanel, context.extensionPath);
-  //     },
-  //   });
-  // }
   WebviewManager.register(context);
 
   // 注册 customEditor
-  customTextEditorWebviews.forEach((webview) => {
-    const { viewType } = webview;
-
+  Object.keys(customTextEditorWebviews).forEach((viewType) => {
+    const getWebview = customTextEditorWebviews[viewType];
+    const { extensionPath } = context
     const provider = {
       async resolveCustomTextEditor(
         document: vscode.TextDocument,
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
       ): Promise<void> {
-        const { viewType, onDidReceiveMessage, panelListeners } = webview;
-        
+        const {
+          webview,
+          onDocumentChange = (e) => {
+            if (e.document.uri.toString() === document.uri.toString()) {
+              webviewPanel.webview.postMessage({
+                type: 'update',
+                text: document.getText(),
+              });
+            }
+          },
+          onEditorActivate,
+        } = await getWebview(document, webviewPanel, _token);
+        const { onDidReceiveMessage, panelListeners, htmlPath, getPanelOptions } = webview;
+
+        // 1. 应用 webview options
+        const pathInfo = getWebviewPathInfo(extensionPath, htmlPath);
+
+        const panelOptions: vscode.WebviewPanelOptions & vscode.WebviewOptions = {
+          localResourceRoots: [vscode.Uri.file(pathInfo.rootString)],
+          ...getPanelOptions(extensionPath),
+        };
+  
+        webviewPanel.webview.options = panelOptions
+
         loadWebviewHtml(webviewPanel, getWebviewPathInfo(context.extensionPath, webview.htmlPath));
 
         // 消息通信，自己负责消息的具体解析和处理
@@ -76,30 +86,34 @@ export function activate(context: vscode.ExtensionContext) {
           webviewPanel.webview.onDidReceiveMessage(onDidReceiveMessage, document);
         }
 
+        // 2. 挂载 TextDocument Listener
+        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(onDocumentChange);
+    
         // 挂载 webviewPanel 的监听器
         const { onDidDispose, ...restListeners } = panelListeners ?? {};
 
         // onDidDispose 特殊，需额外清除 disposable，并移出 panels
         webviewPanel.onDidDispose(() => {
-          if (onDidDispose) onDidDispose.call(document);
+          if (onDidDispose) onDidDispose();
 
-          // 释放所有 disposable，并删除这一个 webviewPanelContent
-          const panelContent = WebviewManager.panels[viewType];
-          panelContent.disposables.forEach((d) => d.dispose());
-
-          delete WebviewManager.panels[viewType];
-        }, document);
+          changeDocumentSubscription.dispose()
+        });
 
         // 其它：装载并写入 disposables
         const restListenerKeys = Object.keys(restListeners) as (keyof typeof restListeners)[];
 
         restListenerKeys.forEach((key) => {
           const listener = restListeners[key];
-          if (listener) webviewPanel[key](listener, document);
+          if (listener) webviewPanel[key](listener);
         });
+
+        // 执行激活后函数
+        if (onEditorActivate) {
+          await onEditorActivate(document, webviewPanel, _token);
+        }
       },
     };
-    const registration = vscode.window.registerCustomEditorProvider(viewType, provider);
+    const registration = vscode.window.registerCustomEditorProvider(`${pluginName}.${viewType}`, provider);
     // 3. 激活事件中，将 registration 加入到 context.subscriptions
     context.subscriptions.push(registration);
   });

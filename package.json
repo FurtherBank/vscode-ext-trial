@@ -10,6 +10,7 @@
     "Other"
   ],
   "activationEvents": [
+		"onCustomEditor:cpu-ext-trial.JsonEditor",
     "onCommand:cpu-ext-trial.HelloWorld",
     "onCommand:cpu-ext-trial.openMyWebview",
     "onWebviewPanel:MyWebview",
@@ -17,6 +18,17 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+		"customEditors": [
+			{
+				"viewType": "cpu-ext-trial.JsonEditor",
+				"displayName": "Cat Scratch",
+				"selector": [
+					{
+						"filenamePattern": "*.json"
+					}
+				]
+			}
+		],
     "commands": [
       {
         "command": "cpu-ext-trial.openMyWebview",
