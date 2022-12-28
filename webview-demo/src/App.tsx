@@ -8,9 +8,25 @@ import { Alert, Button, PageHeader } from 'antd';
 import { VscodeManager } from './vscode/vscodeManager';
 import { FileSyncOutlined } from '@ant-design/icons';
 
-function App() {
+interface AppProps {
+  initialJson?: any;
+}
+
+export interface EditorMessage {
+  msgType: string,
+  content: any
+}
+
+function App(props: AppProps) {
   const initialState = useMemo(() => {
-    const state = VscodeManager.vscode.getState();
+    let state = VscodeManager.vscode.getState();
+    if (state === undefined && props.initialJson !== undefined) {
+      console.log('使用 initialJson:', props.initialJson);
+      
+      state = {
+        data: props.initialJson,
+      };
+    }
     return Object.assign(
       {
         data: null,
@@ -28,8 +44,8 @@ function App() {
 
   // 如果用 ref 包住 datastring，可以避免来回挂载
   useEffect(() => {
-    const handler = (message: any) => {
-      const { content, msgType } = message;
+    const handler = (e: MessageEvent<EditorMessage>) => {
+      const { content, msgType } = e.data;
       const state = VscodeManager.vscode.getState();
       switch (msgType) {
         case 'data':
@@ -100,23 +116,22 @@ function App() {
 
   const syncSchemaHandler = useCallback(() => {
     VscodeManager.vscode.postMessage({
-      msgType: 'sync'
-    })
-  }, [])
-
+      msgType: 'sync',
+    });
+  }, []);
 
   return (
     <div>
       <PageHeader
-    title="JSON Editor"
-    className="site-page-header"
-    subTitle="By FurtherBank"
-    extra={[
-      <Button key="1" type="primary" icon={<FileSyncOutlined />} onClick={syncSchemaHandler}>
-        同步 schema
-      </Button>
-    ]}
-  ></PageHeader>
+        title="JSON Editor"
+        className="site-page-header"
+        subTitle="By FurtherBank"
+        extra={[
+          <Button key="1" type="primary" icon={<FileSyncOutlined />} onClick={syncSchemaHandler}>
+            同步 schema
+          </Button>,
+        ]}
+      ></PageHeader>
       {isError ? <Alert message={'文件无法解析为 json，请通过默认编辑器修改后再试。'} /> : null}
       <JsonSchemaEditor data={dataJson} schema={schema} onChange={handleChange} />
     </div>

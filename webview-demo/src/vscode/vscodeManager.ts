@@ -1,3 +1,4 @@
+
 export class VscodeManager {
   static vscode: any = {
     postMessage(message: any) {
@@ -21,11 +22,16 @@ export class VscodeManager {
       console.log('使用 vscode api');
     } else {
       console.log('使用 mock api');
+      // 1s 后自己发射事件，激活 app
+      setTimeout(() => {
+        console.log('已自发射事件激活组件');
+        window.dispatchEvent(new MessageEvent('message', {
+          data: {
+            msgType: 'data',
+            content: `"hello world!"`
+          }
+        }));
+      }, 1000);
     }
-
-    // Handle messages sent from the extension to the webview
-    window.addEventListener('message', (event) => {
-      // 通过处理机制来处理
-    });
   }
 }

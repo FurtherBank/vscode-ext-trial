@@ -37,8 +37,8 @@ export const JsonEditor = (
     
         return vscode.workspace.applyEdit(edit);
       } else {
-        const { content, type } = message
-        switch (type) {
+        const { content, msgType } = message
+        switch (msgType) {
           case 'sync':
             
             break;
@@ -55,16 +55,18 @@ export const JsonEditor = (
     onDocumentChange: (e) => {
       if (e.document.uri.toString() === document.uri.toString()) {
         webviewPanel.webview.postMessage({
-          type: 'data',
-          text: document.getText(),
+          msgType: 'data',
+          content: document.getText(),
         });
       }
     },
     onEditorActivate: (document, webviewPanel, _token) => {
 			webviewPanel.webview.postMessage({
-				type: 'data',
-				text: document.getText(),
+				msgType: 'data',
+				content: document.getText(),
 			});
+      console.log('已经post');
+      
     },
   }
 }
