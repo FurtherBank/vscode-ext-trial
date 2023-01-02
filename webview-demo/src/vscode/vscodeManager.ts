@@ -1,4 +1,3 @@
-
 export class VscodeManager {
   static vscode: any = {
     postMessage(message: any) {
@@ -14,7 +13,12 @@ export class VscodeManager {
   private static mockState: any = '';
   public static messageHandlers: Record<string, (message: any) => void>;
 
-  static init() {
+  /**
+   * 在入口文件最先执行，获取 vscode api
+   *
+   * @param mockFunction 如果获取失败，执行的 mock 函数
+   */
+  static init(mockFunction?: () => void) {
     // @ts-ignore
     if (window.acquireVsCodeApi) {
       // @ts-ignore
@@ -22,16 +26,10 @@ export class VscodeManager {
       console.log('使用 vscode api');
     } else {
       console.log('使用 mock api');
-      // 1s 后自己发射事件，激活 app
-      setTimeout(() => {
-        console.log('已自发射事件激活组件');
-        window.dispatchEvent(new MessageEvent('message', {
-          data: {
-            msgType: 'data',
-            content: `"hello world!"`
-          }
-        }));
-      }, 1000);
+      // mock 的场景下执行这个函数
+      if (mockFunction) {
+        mockFunction();
+      }
     }
   }
 }

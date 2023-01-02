@@ -1,33 +1,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App, { EditorMessage } from './App';
+import App, { IJsonEditorMessage, IJsonEditorState } from './App';
 import reportWebVitals from './reportWebVitals';
 import { VscodeManager } from './vscode/vscodeManager';
+import { metaSchema } from 'json-schemaeditor-antd';
 
-VscodeManager.init();
+VscodeManager.init(() => {
+  VscodeManager.vscode.setState({
+    data: JSON.stringify({
+      "$schema": "http://json-schema.org/draft-06/schema#",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "row"
+      },
+      "definitions": {}
+    }, null, 2),
+    schema: metaSchema,
+  })
+});
 
-function listener(event: MessageEvent<EditorMessage>) {
-  // 通过处理机制来处理
-  const { data } = event
-  let initialJson: any = null
-  console.log(`收到激活信息：`, event);
-  if (typeof event === 'object') {
-    const { msgType, content } = data
-    if (msgType === 'data') {
-      try {
-        const json = JSON.parse(content);
-        initialJson = json
-      } catch (error) {
-        
-      }
-    }
-  }
+export const renderEditor = (state: IJsonEditorState) => {
+  const { data, schema, jsonIsSchema } = state
+
   const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
   root.render(
     <React.StrictMode>
-      <App initialJson={initialJson}/>
+      <App data={data} schema={schema} jsonIsSchema={jsonIsSchema}/>
     </React.StrictMode>
   );
 
@@ -36,8 +37,29 @@ function listener(event: MessageEvent<EditorMessage>) {
   // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
   reportWebVitals();
 
+
+}
+
+function listener(event: MessageEvent<IJsonEditorMessage>) {
+  // 通过处理机制来处理
+  const { data } = event
+  console.log(`收到激活信息：`, event);
+  if (typeof event === 'object') {
+    const { msgType, ...initState } = data
+
+    VscodeManager.vscode.setState(initState)
+
+    renderEditor(data)
+  }
   window.removeEventListener('message', listener);
 }
 
-// 等监听到 data 信息再挂载组件，只执行一次
-window.addEventListener('message', listener);
+const oldState = VscodeManager.vscode.getState() as IJsonEditorState
+if (oldState !== undefined) {
+  console.log('查询到 oldState', oldState);
+  
+  renderEditor(oldState)
+} else {
+  // 等监听到 data 信息再挂载组件，只执行一次
+  window.addEventListener('message', listener);
+}

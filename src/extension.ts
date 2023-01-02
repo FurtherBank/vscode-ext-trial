@@ -29,7 +29,7 @@ WebviewManager.webviews = {
 };
 
 const customTextEditorWebviews: Record<string, ITextEditor> = {
-  'JsonEditor': JsonEditor
+  JsonEditor: JsonEditor,
 };
 
 // this method is called when your extension is activated
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
   // 注册 customEditor
   Object.keys(customTextEditorWebviews).forEach((viewType) => {
     const getWebview = customTextEditorWebviews[viewType];
-    const { extensionPath } = context
+    const { extensionPath } = context;
     const provider = {
       async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -76,8 +76,8 @@ export function activate(context: vscode.ExtensionContext) {
           localResourceRoots: [vscode.Uri.file(pathInfo.rootString)],
           ...getPanelOptions(extensionPath),
         };
-  
-        webviewPanel.webview.options = panelOptions
+
+        webviewPanel.webview.options = panelOptions;
 
         loadWebviewHtml(webviewPanel, getWebviewPathInfo(context.extensionPath, webview.htmlPath));
 
@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 2. 挂载 TextDocument Listener
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(onDocumentChange);
-    
+
         // 挂载 webviewPanel 的监听器
         const { onDidDispose, ...restListeners } = panelListeners ?? {};
 
@@ -96,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
         webviewPanel.onDidDispose(() => {
           if (onDidDispose) onDidDispose();
 
-          changeDocumentSubscription.dispose()
+          changeDocumentSubscription.dispose();
         });
 
         // 其它：装载并写入 disposables
