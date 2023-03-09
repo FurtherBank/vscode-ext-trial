@@ -1,12 +1,20 @@
+import { IJsonEditorMessage, IJsonEditorState } from '../App';
+
+interface IVscode<T, M = any> {
+  postMessage: (message: M) => void;
+  getState: () => T;
+  setState: (state: T) => void;
+}
+
 export class VscodeManager {
-  static vscode: any = {
-    postMessage(message: any) {
+  static vscode: IVscode<IJsonEditorState, IJsonEditorMessage | string> = {
+    postMessage(message) {
       console.log(`发送信息：${JSON.stringify(message)}`);
     },
     getState() {
       return VscodeManager.mockState;
     },
-    setState(state: any) {
+    setState(state) {
       VscodeManager.mockState = state;
     },
   };

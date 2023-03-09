@@ -49,7 +49,8 @@ export const JsonEditor = (
       };
     },
     htmlPath: 'webview-demo/build',
-    onDidReceiveMessage: async function (message: any) {
+    onDidReceiveMessage: async function (message: IJsonEditorMessage | string) {
+      // message 可能为 string | IJsonEditorMessage，前者纯粹修改文档，后者各有用处
       console.log(`vscode 收到消息：`, message);
       if (typeof message === 'string') {
         // data 编辑信息
@@ -61,7 +62,7 @@ export const JsonEditor = (
 
         return vscode.workspace.applyEdit(edit);
       } else {
-        const { content, msgType } = message;
+        const { msgType } = message as IJsonEditorMessage;
         
         switch (msgType) {
           case 'sync-schema':

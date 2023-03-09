@@ -28,6 +28,7 @@ function App(props: IJsonEditorState) {
 
       return json;
     } catch (error) {
+      console.log('initial data 解析错误', initialData);
       return undefined;
     }
   }, []);
@@ -49,26 +50,32 @@ function App(props: IJsonEditorState) {
       // 1. 处理收到的 data
       if (data !== undefined) {
         if (data !== dataStringRef.current) {
-          console.log('检测到外部 json 变化，重新解析……', data == dataStringRef.current, data.localeCompare(dataStringRef.current!) === 0, data.trim() === dataStringRef.current);
+          console.log(
+            '检测到外部 json 变化，重新解析……',
+            data === dataStringRef.current,
+            data.localeCompare(dataStringRef.current!) === 0,
+            data.trim() === dataStringRef.current
+          );
           console.log(data);
           console.log(dataStringRef.current);
           dataStringRef.current = data;
           setJsonChanged(false);
-          
+
           try {
             const json = JSON.parse(data);
             setDataJson(json);
             setIsError(false);
             VscodeManager.vscode.setState({
               ...state,
-              data: json,
+              data: data,
             });
           } catch (error) {
+            console.log(`json 解析错误`, error, data);
             setDataJson(null);
             setIsError(true);
             VscodeManager.vscode.setState({
               ...state,
-              data: null,
+              data: undefined,
             });
           }
         }
@@ -106,12 +113,12 @@ function App(props: IJsonEditorState) {
       setJsonChanged(false);
 
       VscodeManager.vscode.postMessage(newString);
-      
+
       // 2. 将新的 json 同步到 webview state
       const state = VscodeManager.vscode.getState() ?? {};
       VscodeManager.vscode.setState({
         ...state,
-        data: newJson,
+        data: newString,
       });
     }, 600),
     []
