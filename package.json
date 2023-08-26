@@ -1,8 +1,10 @@
 {
   "name": "cpu-ext-trial",
   "displayName": "cpu-ext-trial",
+  "publisher": "FurtherBank",
   "description": "",
   "version": "0.0.1",
+  "repository": "https://github.com/FurtherBank/cpu-ext-trial",
   "engines": {
     "vscode": "^1.71.0"
   },
@@ -10,18 +12,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCustomEditor:cpu-ext-trial.JsonEditor",
-    "onCommand:cpu-ext-trial.HelloWorld",
-    "onCommand:cpu-ext-trial.openMyWebview",
-    "onWebviewPanel:MyWebview",
-    "onCommand:cpu-ext-trial.LogFile"
+    "onCustomEditor:cpu-ext-trial.JsonEditor"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "customEditors": [
       {
         "viewType": "cpu-ext-trial.JsonEditor",
-        "displayName": "Cat Scratch",
+        "displayName": "Cpu Json Editor",
         "selector": [
           {
             "filenamePattern": "*.json"
@@ -29,42 +27,22 @@
         ]
       }
     ],
-    "commands": [
-      {
-        "command": "cpu-ext-trial.openMyWebview",
-        "title": "📖Open Panel"
-      },
-      {
-        "command": "cpu-ext-trial.HelloWorld",
-        "title": "👋Hello World"
-      },
-      {
-        "command": "cpu-ext-trial.LogFile",
-        "title": "📄Log File"
-      }
-    ],
+    "commands": [],
     "menus": {
-      "explorer/context": [
-        {
-          "when": "resourceLangId == json",
-          "command": "cpu-ext-trial.LogFile",
-          "group": "1_modification"
-        },
-        {
-          "when": "resourceLangId == json",
-          "command": "cpu-ext-trial.openMyWebview",
-          "group": "1_modification"
-        }
-      ]
+      "explorer/context": []
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
+    "vscode:prepublish": "yarn esbuild-base --minify",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test-compile": "tsc -p ./",
+    "pretest": "yarn test-compile && yarn lint",
+    "test": "node ./out/test/runTest.js",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "yarn esbuild-base --sourcemap",
+    "esbuild-watch": "yarn esbuild-base --sourcemap --watch"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
@@ -77,6 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.17.11",
     "eslint": "^8.20.0",
     "glob": "^8.0.3",
     "mocha": "^10.0.0",
